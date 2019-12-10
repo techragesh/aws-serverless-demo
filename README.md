@@ -388,3 +388,82 @@ Next run the below command from your project directory
 serverless deploy
 
 ```
+
+![sls-deploy-1](sls-deploy-1.png)
+
+![sls-deploy-3](sls-deploy-3.png)
+
+![sls-deploy-4](sls-deploy-4.png)
+
+Log into your AWS console and check your cloud formation stack. If anything fails, your stack will be rolled back.
+
+**_Step: 8_**
+
+You can see the .serverless folder created in your project directory.
+
+The folder has 2 cloudformation templates that did heavy lifting via Serverless Framework.
+
+![sls-serverless-dir](sls-serverless-dir.png)
+
+The **create** template creates the S3 bucket to upload the artifact and **update** template takes care of everything else.
+
+**_Step: 8_**
+
+#### **_Lets verify the API Gateway_**
+
+The API endpoints are already configured your **serverless.yml** file. For example GetAccounts Function like this
+
+```
+functions:
+  get-accounts:
+    handler: com.serverless.GetAccountsHandler
+    events:
+      - http:
+          path: /accounts/{accountId}/transactions
+          method: get
+
+```
+Lambda functions need an event to be triggered. The API Gateway invocation is one of the many events supported by AWS Lambda. Hence, we define http as the event under the function definition.
+
+You need to attach this policy **AmazonAPIGatewayAdministrator** for the AWS user.
+
+**_Step: 9_**
+
+#### **_Lets test the endpoints_**
+
+I just store the account using put transactions. We can also use http post if then you need to change the corresponding events in serverless.yml file.
+
+![sls-api-put-1](sls-api-put-1.png) 
+
+Now I am going to get the account information of 1234
+
+![sls-api-get-1](sls-api-get-1.png)
+
+**_Step: 10_**
+
+#### **_Lets see other resources from AWS console**
+
+**S3 Bucket**
+
+![sls-s3-bucket](sls-s3-bucket.png)
+
+
+**DynamoDb**
+
+![sls-dynamodb](sls-dynamodb.png)
+
+
+**Lambda Function**
+
+![sls-lambda-1](sls-lambda-1.png)
+
+![sls-lambda-post](sls-lambda-post.png)
+
+**CloudWatch**
+
+![sls-cloudwatch-1](sls-cloudwatch-1.png)
+
+![sls-cloudwatch-2](sls-cloudwatch-2.png)
+
+
+### Happy Coding
