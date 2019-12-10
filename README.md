@@ -1,5 +1,5 @@
 # aws-serverless-demo
-This project explains how can to work with API Gateway, Lambda, S3, CloudFormation, DynamoDB using serverless framework
+This project explains how can we work with API Gateway, Lambda, S3, CloudFormation, DynamoDB using serverless framework
 
 ### The Serverless Framework
 
@@ -10,7 +10,7 @@ Refer this link: https://serverless.com/
 
 ### Installation 
 
-###### **How to install the serverless framework**
+#### **How to install the serverless framework**
 
 **Pre-requesties:**
 
@@ -25,7 +25,7 @@ npm install -g serverless
 
 ### aws serverless demo using serverless framework
 
-##### aws-serverless-demo architecture
+#### aws-serverless-demo architecture
 
 ![aws-serverless-architecture](aws-serverless-architecture.png)
 
@@ -110,7 +110,7 @@ And we are going to use Dynamodb so we need to add below dependencies
 
 **_Step: 4_**
 
-##### _serverless.yml_
+#### _serverless.yml_
 
 The heart of serverless framework is **_serverless.yml_** file
 
@@ -121,3 +121,270 @@ Basically once we run the application, whatever we configured serverless.yml fil
 
 Lets see one by one
 
+**1. Change your package information**
+
+```
+package:
+  artifact: target/hello-dev.jar
+
+functions:
+  hello:
+    handler: com.serverless.Handler
+
+```
+to
+
+```
+
+package:
+  artifact: target/accounts-api-dev.jar
+
+functions:
+  get-accounts:
+    handler: com.serverless.GetAccountsHandler
+    events:
+      - http:
+          path: /accounts/{accountId}/transactions
+          method: get
+  post-accounts:
+    handler: com.serverless.PostAccountsHandler
+    events:
+      - http:
+          path: /accounts/{accountId}/transactions
+          method: put
+
+```
+
+Here I am going to use two lambda functions. One for getting account with help of GetAccountsHandler and another one for store account by PostAccountsHandler.
+
+**2. Configure DynamoDB resource**
+
+```
+resources:
+  Resources:
+    transactionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: accounts_table
+        AttributeDefinitions:
+          - AttributeName: account_id
+            AttributeType: S
+          - AttributeName: account_name
+            AttributeType: S
+        KeySchema:
+          - AttributeName: account_id
+            KeyType: HASH
+          - AttributeName: account_name
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+```
+
+**3. Configure IAM role to access dynamodb from Lambda Function**
+
+```
+iamRoleStatements:
+   - Effect: "Allow"
+     Action:
+       - "dynamodb:*"
+     Resource: "*"
+
+```
+
+**_Step: 5_**
+
+#### **_Lets do the code now_**
+
+Lets finish DynamoDB POJO first
+
+I can created a new package data under com.serverless package.
+
+**_Accounts.java_** - This POJO represents the DynamoDB Item
+
+```
+package com.serverless.data;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBRangeKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+
+@DynamoDBTable(tableName = "accounts_table")
+public class Accounts {
+
+    @DynamoDBHashKey(attributeName = "account_id")
+    private String accountId;
+
+    @DynamoDBRangeKey(attributeName = "account_name")
+    private String accountName;
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+}
+
+```
+
+Next, Lets create a adapter class to handle all DynamoDb work.
+
+**_DynamoDBAdapter.java_**
+
+```
+package com.serverless.data;
+
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class DynamoDBAdapter {
+
+    private Logger logger = LogManager.getLogger(DynamoDBAdapter.class);
+
+    private final static DynamoDBAdapter adapter = new DynamoDBAdapter();
+
+    private final AmazonDynamoDB client;
+
+    private DynamoDBAdapter() {
+        client = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration("https://dynamodb.us-east-1.amazonaws.com", "us-east-1"))
+                .build();
+        logger.info("Created DynamoDB client");
+    }
+
+    public static DynamoDBAdapter getInstance() {
+        return adapter;
+    }
+
+    public List<Accounts> getAccounts(String accountId) throws IOException {
+        DynamoDBMapper mapper = new DynamoDBMapper(client);
+        Map<String, AttributeValue> vals = new HashMap<>();
+        vals.put(":val1", new AttributeValue().withS(accountId));
+        DynamoDBQueryExpression<Accounts> queryExpression = new DynamoDBQueryExpression<Accounts>()
+                .withKeyConditionExpression("account_id = :val1 ")
+                .withExpressionAttributeValues(vals);
+        return mapper.query(Accounts.class, queryExpression);
+    }
+
+
+    public void postAccount(Accounts transaction) throws IOException {
+        DynamoDBMapper mapper = new DynamoDBMapper(client);
+        mapper.save(transaction);
+    }
+
+}
+
+```
+
+**_Step: 6_**
+
+#### **_Lets do the Lambda Function Handlers_**
+
+**_PostAccountsHandler.java_**
+
+Here is the code for PostAccountsHandler - handleRequest method
+
+```
+    @Override
+	public ApiGatewayResponse handleRequest(Map<String, Object> input, Context context) {
+			LOG.info("received: " + input);
+			//lets get our path parameter for account_id
+			try{
+				ObjectMapper mapper = new ObjectMapper();
+				Map<String,String> pathParameters =  (Map<String,String>)input.get("pathParameters");
+				String accountId = pathParameters.get("accountId");
+				Accounts tx = new Accounts();
+				tx.setAccountId(accountId);
+				JsonNode body = mapper.readTree((String) input.get("body"));
+				String accountName = body.get("accountName").asText();
+				tx.setAccountName(accountName);
+				DynamoDBAdapter.getInstance().postAccount(tx);
+			} catch(Exception e){
+				LOG.error(e,e);
+				Response responseBody = new Response("Failure putting transaction", input);
+				return ApiGatewayResponse.builder()
+						.setStatusCode(500)
+						.setObjectBody(responseBody)
+						.setHeaders(Collections.singletonMap("X-Powered-By", "AWS Lambda & serverless"))
+						.build();
+			}
+			Response responseBody = new Response("Transaction added successfully!", input);
+			return ApiGatewayResponse.builder()
+					.setStatusCode(200)
+					.setObjectBody(responseBody)
+					.setHeaders(Collections.singletonMap("X-Powered-By", "AWS Lambda & serverless"))
+					.build();
+		}
+
+```
+
+Similarly, we code for GetAccountsHandler - handleRequest Method
+
+**_GetAccountsHandler.java_**
+
+```
+    @Override
+	public ApiGatewayResponse handleRequest(Map<String, Object> input, Context context) {
+			LOG.info("received: " + input);
+			List<Accounts> tx;
+			try {
+				Map<String, String> pathParameters = (Map<String, String>) input.get("pathParameters");
+				String accountId = pathParameters.get("accountId");
+				LOG.info("Getting transactions for " + accountId);
+				tx = DynamoDBAdapter.getInstance().getAccounts(accountId);
+			} catch (Exception e) {
+				LOG.error(e, e);
+				Response responseBody = new Response("Failure getting transactions", input);
+				return ApiGatewayResponse.builder()
+						.setStatusCode(500)
+						.setObjectBody(responseBody)
+						.setHeaders(Collections.singletonMap("X-Powered-By", "AWS Lambda & serverless"))
+						.build();
+			}
+			return ApiGatewayResponse.builder()
+					.setStatusCode(200)
+					.setObjectBody(tx)
+					.setHeaders(Collections.singletonMap("X-Powered-By", "AWS Lambda & serverless"))
+					.build();
+		}
+
+```
+
+We done our coding part. Lets do the deploy.
+
+**_Step: 7_**
+
+#### **_Lets deploy the lambda functions_**
+
+First do, mvn clean install
+
+![sls_maven_install.png](sls_maven_install.png)
+
+Next run the below command from your project directory
+
+```
+serverless deploy
+
+```
