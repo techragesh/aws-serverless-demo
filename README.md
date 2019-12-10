@@ -57,6 +57,7 @@ Lets start to create a new serverless framework project.
 I am creating this project in java. We can also create project in nodejs, python etc.
 
 **_Step: 1_**
+============
 
 **Create a folder called account-api**
 
@@ -69,10 +70,12 @@ serverless create --template aws-java-maven --name account-api
 ![sls_createproject.png](sls_createproject.png)
 
 **_Step: 2_**
+==============
 
 Open your project in your favourite IDE.
 
 **_Step: 3_**
+=============
 
 We need to do slight changes in pom.xml
 
@@ -399,7 +402,7 @@ Log into your AWS console and check your cloud formation stack. If anything fail
 
 **_Step: 8_**
 
-You can see the .serverless folder created in your project directory.
+You can see the **.serverless folder** created in your project directory.
 
 The folder has 2 cloudformation templates that did heavy lifting via Serverless Framework.
 
@@ -441,7 +444,7 @@ Now I am going to get the account information of 1234
 
 **_Step: 10_**
 
-#### **_Lets see other resources from AWS console**
+#### **_Lets see other resources from AWS console_**
 
 **S3 Bucket**
 
