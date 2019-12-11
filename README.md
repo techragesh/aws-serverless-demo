@@ -112,6 +112,7 @@ And we are going to use Dynamodb so we need to add below dependencies
 ```
 
 **_Step: 4_**
+=============
 
 #### _serverless.yml_
 
@@ -197,6 +198,7 @@ iamRoleStatements:
 ```
 
 **_Step: 5_**
+==============
 
 #### **_Lets do the code now_**
 
@@ -302,6 +304,7 @@ public class DynamoDBAdapter {
 ```
 
 **_Step: 6_**
+==============
 
 #### **_Lets do the Lambda Function Handlers_**
 
@@ -378,6 +381,7 @@ Similarly, we code for GetAccountsHandler - handleRequest Method
 We done our coding part. Lets do the deploy.
 
 **_Step: 7_**
+==============
 
 #### **_Lets deploy the lambda functions_**
 
@@ -401,6 +405,7 @@ serverless deploy
 Log into your AWS console and check your cloud formation stack. If anything fails, your stack will be rolled back.
 
 **_Step: 8_**
+=============
 
 You can see the **.serverless folder** created in your project directory.
 
@@ -410,7 +415,8 @@ The folder has 2 cloudformation templates that did heavy lifting via Serverless 
 
 The **create** template creates the S3 bucket to upload the artifact and **update** template takes care of everything else.
 
-**_Step: 8_**
+**_Step: 9_**
+=============
 
 #### **_Lets verify the API Gateway_**
 
@@ -430,7 +436,8 @@ Lambda functions need an event to be triggered. The API Gateway invocation is on
 
 You need to attach this policy **AmazonAPIGatewayAdministrator** for the AWS user.
 
-**_Step: 9_**
+**_Step: 10_**
+==============
 
 #### **_Lets test the endpoints_**
 
@@ -442,7 +449,8 @@ Now I am going to get the account information of 1234
 
 ![sls-api-get-1](sls-api-get-1.png)
 
-**_Step: 10_**
+**_Step: 11_**
+==============
 
 #### **_Lets see other resources from AWS console_**
 
