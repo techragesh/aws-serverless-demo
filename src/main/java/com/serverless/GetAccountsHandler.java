@@ -7,7 +7,14 @@ import com.serverless.data.DynamoDBAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +31,9 @@ public class GetAccountsHandler implements RequestHandler<Map<String, Object>, A
 				String accountId = pathParameters.get("accountId");
 				LOG.info("Getting transactions for " + accountId);
 				tx = DynamoDBAdapter.getInstance().getAccounts(accountId);
+
+				LOG.info("Headers: " + input.get("headers"));
+
 			} catch (Exception e) {
 				LOG.error(e, e);
 				Response responseBody = new Response("Failure getting transactions", input);
@@ -39,4 +49,6 @@ public class GetAccountsHandler implements RequestHandler<Map<String, Object>, A
 					.setHeaders(Collections.singletonMap("X-Powered-By", "AWS Lambda & serverless"))
 					.build();
 		}
+
+
 }
