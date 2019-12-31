@@ -40,7 +40,7 @@ public class UserHandler implements RequestHandler<Map<String, Object>, ApiGatew
             user.setLastLoginDate(UserAdapter.getInstance().getLastLogin(user.getUserName()));
             LOG.info("UserHandler user info: " + user);
             //Form session object
-            session = sessionHandler.createSession(user.getUserName());
+            session = sessionHandler.createSession(user.getUserName(), context.getAwsRequestId());
             LOG.info("UserHandler session info: " + session);
             //Save User and Session Object
             UserAdapter.getInstance().saveUser(user);

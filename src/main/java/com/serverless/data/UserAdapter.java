@@ -39,9 +39,15 @@ public class UserAdapter {
     public void saveUser(User user) {
         DynamoDBMapper mapper = new DynamoDBMapper(client);
         if(checkUser(user.getUserName()) == null) {
-            mapper.save(user, new DynamoDBSaveExpression().withExpected(ImmutableMap.of(user.getUserName(), new ExpectedAttributeValue(false))));
+            //mapper.save(user, new DynamoDBSaveExpression().withExpected(ImmutableMap.of("userId", new ExpectedAttributeValue(false))));
+            logger.info("saveuser insert:>>>>>>>>" + user);
+            mapper.save(user);
         } else {
-            mapper.save(user, new DynamoDBSaveExpression().withExpected(ImmutableMap.of(user.getUserName(), new ExpectedAttributeValue(true))));
+            User update = checkUser(user.getUserName());
+            update.setLastLoginDate(getLastLogin(user.getUserName()));
+            logger.info("saveuser update:>>>>>>>>" + user);
+            mapper.save(update);
+            //mapper.save(user, new DynamoDBSaveExpression().withExpected(ImmutableMap.of("userId", new ExpectedAttributeValue(true))));
         }
     }
 
@@ -75,7 +81,7 @@ public class UserAdapter {
     public User checkUser(String userName) {
         DynamoDBMapper mapper = new DynamoDBMapper(client);
         User user = mapper.load(User.class,userName);
-        logger.info("CheckUser:>>>>>>>>", user);
+        logger.info("CheckUser:>>>>>>>>" + user);
         return user;
     }
 }
