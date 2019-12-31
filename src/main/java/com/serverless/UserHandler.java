@@ -3,17 +3,13 @@ package com.serverless;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
-import com.google.common.hash.Hashing;
 import com.serverless.data.Session;
 import com.serverless.data.User;
 import com.serverless.data.UserAdapter;
-import com.serverless.util.SessionHandler;
+import com.serverless.util.SessionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Map;
 
@@ -33,14 +29,14 @@ public class UserHandler implements RequestHandler<Map<String, Object>, ApiGatew
         try{
             Map<String, String> pathParameters = (Map<String, String>) input.get("pathParameters");
             UserRequest userRequest = new UserRequest();
-            SessionHandler sessionHandler = new SessionHandler();
+            SessionHelper sessionHelper = new SessionHelper();
             //Form user object
             user = userRequest.createUser(pathParameters);
             //user.setCurrentLoginDate(Instant.now());
             user.setLastLoginDate(UserAdapter.getInstance().getLastLogin(user.getUserName()));
             LOG.info("UserHandler user info: " + user);
             //Form session object
-            session = sessionHandler.createSession(user.getUserName(), context.getAwsRequestId());
+            session = sessionHelper.createSession(user.getUserName(), context.getAwsRequestId());
             LOG.info("UserHandler session info: " + session);
             //Save User and Session Object
             UserAdapter.getInstance().saveUser(user);

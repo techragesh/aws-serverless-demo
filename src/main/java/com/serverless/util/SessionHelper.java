@@ -1,18 +1,15 @@
 package com.serverless.util;
 
 import com.google.common.hash.Hashing;
-import com.serverless.UserHandler;
 import com.serverless.data.Session;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 
-public class SessionHandler {
-    private static final Logger LOG = LogManager.getLogger(SessionHandler.class);
+public class SessionHelper {
+    private static final Logger LOG = LogManager.getLogger(SessionHelper.class);
 
     /**
      * Create sessionId based on username

@@ -5,7 +5,10 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.google.common.collect.ImmutableMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,7 +49,10 @@ public class DynamoDBAdapter {
 
     public void postAccount(Accounts transaction) throws IOException {
         DynamoDBMapper mapper = new DynamoDBMapper(client);
-        mapper.save(transaction);
+        DynamoDBSaveExpression saveExpr = new DynamoDBSaveExpression();
+        saveExpr.setExpected(new ImmutableMap.Builder()
+                .put(transaction.getAccountId(), new ExpectedAttributeValue(false)).build());
+        mapper.save(transaction, saveExpr);
     }
 
 }

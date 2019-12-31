@@ -45,7 +45,7 @@ public class UserAdapter {
         } else {
             User update = checkUser(user.getUserName());
             update.setLastLoginDate(getLastLogin(user.getUserName()));
-            logger.info("saveuser update:>>>>>>>>" + user);
+            logger.info("saveuser update:>>>>>>>>" + update);
             mapper.save(update);
             //mapper.save(user, new DynamoDBSaveExpression().withExpected(ImmutableMap.of("userId", new ExpectedAttributeValue(true))));
         }
@@ -57,7 +57,15 @@ public class UserAdapter {
      */
     public void saveSession(Session session) {
         DynamoDBMapper mapper = new DynamoDBMapper(client);
-        mapper.save(session);
+        if(checkSession(session.getUserId()) == null){
+            logger.info("saveSession insert:>>>>>>>>" + session);
+            mapper.save(session);
+        } else {
+            Session update = checkSession(session.getUserId());
+            update.setSessionId(session.getSessionId());
+            logger.info("saveSession update:>>>>>>>>" + update);
+            mapper.save(update);
+        }
     }
 
     /**
@@ -83,5 +91,28 @@ public class UserAdapter {
         User user = mapper.load(User.class,userName);
         logger.info("CheckUser:>>>>>>>>" + user);
         return user;
+    }
+
+    /**
+     * Verify the session already exists for the user
+     * @param userName - represents the username who logged in from NOAB
+     */
+    public Session checkSession(String userName) {
+        DynamoDBMapper mapper = new DynamoDBMapper(client);
+        Session session = mapper.load(Session.class,userName);
+        logger.info("CheckUser:>>>>>>>>" + session);
+        return session;
+    }
+
+    /**
+     * Verify the session already exists for the user
+     * @param userName - represents the username who logged in from NOAB
+     */
+    public void doLogout(String userName) {
+        DynamoDBMapper mapper = new DynamoDBMapper(client);
+        Session update = checkSession(userName);
+        update.setSessionId(null);
+        logger.info("session update:>>>>>>>>" + update);
+        mapper.save(update);
     }
 }
