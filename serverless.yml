@@ -70,8 +70,13 @@ functions:
     handler: com.serverless.UserHandler
     events:
       - http:
-          path: /user/{username}/{Referer}/transactions
+          path: /user/transactions
           method: put
+          request:
+            paramaters:
+              querystrings:
+                url: true
+          cors: true
   post-session:
     handler: com.serverless.SessionHandler
     events:
@@ -156,15 +161,11 @@ resources:
       Properties:
         TableName: session
         AttributeDefinitions:
-          - AttributeName: sessionId
-            AttributeType: S
           - AttributeName: userId
             AttributeType: S
         KeySchema:
-          - AttributeName: sessionId
-            KeyType: HASH
           - AttributeName: userId
-            KeyType: RANGE
+            KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1

@@ -27,11 +27,12 @@ public class UserHandler implements RequestHandler<Map<String, Object>, ApiGatew
     public ApiGatewayResponse handleRequest(Map<String, Object> input, Context context) {
         LOG.info("UserHandler received: " + input);
         try{
-            Map<String, String> pathParameters = (Map<String, String>) input.get("pathParameters");
+            Map<String, String> pathParameters = (Map<String, String>) input.get("queryStringParameters");
+            Map<String, String> headerParameters = (Map<String, String>) input.get("headers");
             UserRequest userRequest = new UserRequest();
             SessionHelper sessionHelper = new SessionHelper();
             //Form user object
-            user = userRequest.createUser(pathParameters);
+            user = userRequest.createUser(pathParameters.get("username"),headerParameters.get("Referer"));
             //user.setCurrentLoginDate(Instant.now());
             user.setLastLoginDate(UserAdapter.getInstance().getLastLogin(user.getUserName()));
             LOG.info("UserHandler user info: " + user);
