@@ -3,8 +3,8 @@ package com.serverless;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.serverless.data.Session;
+import com.serverless.data.User;
 import com.serverless.data.UserAdapter;
-import com.serverless.util.SessionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,11 +22,11 @@ public class SessionHandler implements RequestHandler<Map<String, Object>, ApiGa
     public ApiGatewayResponse handleRequest(Map<String, Object> input, Context context) {
         LOG.info("UserHandler received: " + input);
         try{
-            Map<String, String> pathParameters = (Map<String, String>) input.get("pathParameters");
+            Map<String, String> pathParameters = (Map<String, String>) input.get("queryStringParameters");
             userName =  pathParameters.get("username");
-            SessionHelper sessionHelper = new SessionHelper();
+            User user = UserAdapter.getInstance().checkUser(userName);
             //update sessionid as null for logout
-            UserAdapter.getInstance().doLogout(userName);
+            UserAdapter.getInstance().doLogout(user.getOrgUsername());
         } catch(Exception e){
             LOG.error(e,e);
             SessionResponse responseBody = new SessionResponse("Failure putting transaction", userName);

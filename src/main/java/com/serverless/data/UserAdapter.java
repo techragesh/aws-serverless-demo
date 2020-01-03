@@ -3,13 +3,8 @@ package com.serverless.data;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.google.common.collect.ImmutableMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.time.Instant;
 
 
 /**
@@ -63,6 +58,7 @@ public class UserAdapter {
         } else {
             Session update = checkSession(session.getUserId());
             update.setSessionId(session.getSessionId());
+            update.setExpiredDate(session.getExpiredDate());
             logger.info("saveSession update:>>>>>>>>" + update);
             mapper.save(update);
         }
@@ -95,22 +91,22 @@ public class UserAdapter {
 
     /**
      * Verify the session already exists for the user
-     * @param userName - represents the username who logged in from NOAB
+     * @param userId - represents the username who logged in from NOAB
      */
-    public Session checkSession(String userName) {
+    public Session checkSession(String userId) {
         DynamoDBMapper mapper = new DynamoDBMapper(client);
-        Session session = mapper.load(Session.class,userName);
+        Session session = mapper.load(Session.class,userId);
         logger.info("CheckUser:>>>>>>>>" + session);
         return session;
     }
 
     /**
      * Verify the session already exists for the user
-     * @param userName - represents the username who logged in from NOAB
+     * @param userId - represents the username who logged in from NOAB
      */
-    public void doLogout(String userName) {
+    public void doLogout(String userId) {
         DynamoDBMapper mapper = new DynamoDBMapper(client);
-        Session update = checkSession(userName);
+        Session update = checkSession(userId);
         update.setSessionId(null);
         logger.info("session update:>>>>>>>>" + update);
         mapper.save(update);

@@ -25,12 +25,12 @@ public class UserRequest {
     private final String UNKNOWN = "unknown";
     private final String REFERER = "Referer";
 
-    public User createUser(String userName, String referer) {
-        //String refererHeader = pathParameters.get(REFERER);;
-        //String userName = pathParameters.get(USERNAMETAG);;
+    public User createUser(Map<String, String> pathParameters, Map<String, String> headerParameters) {
+        String refererHeader = headerParameters.get(REFERER);;
+        String userName = pathParameters.get(USERNAMETAG);;
         String organisation;
         User user = new User();
-        if (referer.contains(NOAB_REFER)) {
+        if (refererHeader.contains(NOAB_REFER)) {
             organisation = NOAB_NAME;
         } else {
             organisation = UNKNOWN;

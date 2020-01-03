@@ -32,12 +32,12 @@ public class UserHandler implements RequestHandler<Map<String, Object>, ApiGatew
             UserRequest userRequest = new UserRequest();
             SessionHelper sessionHelper = new SessionHelper();
             //Form user object
-            user = userRequest.createUser(pathParameters.get("username"),headerParameters.get("Referer"));
+            user = userRequest.createUser(pathParameters,headerParameters);
             //user.setCurrentLoginDate(Instant.now());
             user.setLastLoginDate(UserAdapter.getInstance().getLastLogin(user.getUserName()));
             LOG.info("UserHandler user info: " + user);
             //Form session object
-            session = sessionHelper.createSession(user.getUserName(), context.getAwsRequestId());
+            session = sessionHelper.createSession(user, context.getAwsRequestId());
             LOG.info("UserHandler session info: " + session);
             //Save User and Session Object
             UserAdapter.getInstance().saveUser(user);
